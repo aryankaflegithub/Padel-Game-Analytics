@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+import json
+import os
 
 
 class CourtMapper:
@@ -8,6 +10,21 @@ class CourtMapper:
         self.homography_matrix = None
         self.clicked_points = []
         self.output_size = (400, 800)
+        self.save_path = "output/court_points.json"
+
+    def load_if_exists(self):
+        if os.path.exists(self.save_path):
+            with open(self.save_path, "r") as f:
+                self.clicked_points = json.load(f)
+            self.court_polygon = np.array(self.clicked_points, dtype=np.int32)
+            print(f"loaded court points: {self.clicked_points}")
+            return True
+        return False
+
+    def save_points(self):
+        with open(self.save_path, "w") as f:
+            json.dump(self.clicked_points, f)
+        print(f"court points saved to {self.save_path}")
 
     def define_court_manually(self, frame):
         print("click 4 corners: top-left, top-right, bottom-right, bottom-left. press Q when done")
@@ -34,6 +51,7 @@ class CourtMapper:
 
         cv2.destroyAllWindows()
         self.court_polygon = np.array(self.clicked_points, dtype=np.int32)
+        self.save_points()
         return self.clicked_points
 
     def build_homography(self):
@@ -67,4 +85,3 @@ class CourtMapper:
         cv2.polylines(frame, [self.court_polygon], True, (0, 255, 0), 2)
         return frame
     
-
