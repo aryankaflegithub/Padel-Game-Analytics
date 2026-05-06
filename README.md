@@ -6,7 +6,7 @@ Padel Game Analytics — Shot Classification System
 So we are building a computer vision pipeline that takes a padel match video as input and gives output as a structured file (JSON/CSV) telling us exactly when each shot happened, who hit it and what type it was.
 
 Firstly i watched the video and saw few things.
-1. The camera is a wide angle fixed camera that is most likely a CCTV. 
+1. The camera is a wide angle fixed camera. 
 2. The ball is very tiny so normal YOLO will definitely miss it. 
 3. Players look squished so arm swing might be harder to read.
 4. Boundry is clearly defined and the base is blue in color.
