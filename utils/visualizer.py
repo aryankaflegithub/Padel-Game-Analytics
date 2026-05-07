@@ -1,41 +1,72 @@
 import cv2
 
-COLORS = [
-    (255, 0, 0), (0, 165, 255), (0, 255, 255), (255, 0, 255),
-    (255, 255, 0), (0, 255, 0)
-]
+COLORS = {
+    1: (0, 255, 0),
+    2: (0, 165, 255),
+    3: (255, 0, 255),
+    4: (0, 255, 255)
+}
 
 SKELETON = [
     (5, 6), (5, 7), (7, 9), (6, 8), (8, 10),
-    (5, 11), (6, 12), (11, 12), (11, 13), (13, 15), (12, 14), (14, 16)
+    (5, 11), (6, 12), (11, 12),
+    (11, 13), (13, 15), (12, 14), (14, 16)
 ]
 
-def draw_players(frame, players, court_mapper=None):
+def get_color(pid):
+    return COLORS.get(pid, (255, 255, 255))
+
+def unwarp_keypoints(kps, mapper, warp_scale):
+    sx, sy = warp_scale
+    result = []
+    for kx, ky in kps:
+        if kx > 0 and ky > 0:
+            orig = mapper.unwarp_point((int(kx / sx), int(ky / sy)))
+            result.append(orig)
+        else:
+            result.append(None)
+    return result
+
+def draw_players_on_original(frame, players, mapper, warp_scale):
+    sx, sy = warp_scale
+
     for p in players:
-        pid = p["id"]
-        color = COLORS[pid % len(COLORS)]
-        x1, y1, x2, y2 = p["box"]
+        pid   = p["id"]
+        color = get_color(pid)
 
-        cv2.rectangle(frame, (x1, y1), (x2, y2), color, 2)
-        cv2.putText(frame, f"P{pid}", (x1, y1 - 8),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
+        cx = int(p["center"][0] / sx)
+        cy = int(p["center"][1] / sy)
+        fx = int(p["foot"][0]   / sx)
+        fy = int(p["foot"][1]   / sy)
 
-        if court_mapper is not None:
-            side = court_mapper.get_player_side(p["foot"])
-            cv2.putText(frame, side, (x1, y1 - 24),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+        orig_center = mapper.unwarp_point((cx, cy))
+        orig_foot   = mapper.unwarp_point((fx, fy))
 
-        kps = p["keypoints"]
-        if kps is not None:
-            for kx, ky in kps:
-                if kx > 0 and ky > 0:
-                    cv2.circle(frame, (int(kx), int(ky)), 3, color, -1)
+        # bounding circle and label
+        cv2.circle(frame, orig_center, 25, color, 2)
+        cv2.circle(frame, orig_foot, 6, color, -1)
+        cv2.putText(frame, f"P{pid}", (orig_center[0] + 15, orig_center[1] - 15),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, color, 2)
+
+        side = "near" if orig_foot[1] > frame.shape[0] // 2 else "far"
+        cv2.putText(frame, side, (orig_center[0] + 15, orig_center[1] + 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 1)
+
+        # skeleton
+        kps = p.get("keypoints")
+        if kps is not None and len(kps) >= 17:
+            orig_kps = unwarp_keypoints(kps, mapper, warp_scale)
+
+            # draw joints
+            for pt in orig_kps:
+                if pt is not None:
+                    cv2.circle(frame, pt, 4, color, -1)
+
+            # draw bones
             for a, b in SKELETON:
-                if a < len(kps) and b < len(kps):
-                    ax, ay = int(kps[a][0]), int(kps[a][1])
-                    bx, by = int(kps[b][0]), int(kps[b][1])
-                    if ax > 0 and ay > 0 and bx > 0 and by > 0:
-                        cv2.line(frame, (ax, ay), (bx, by), color, 1)
+                if a < len(orig_kps) and b < len(orig_kps):
+                    if orig_kps[a] is not None and orig_kps[b] is not None:
+                        cv2.line(frame, orig_kps[a], orig_kps[b], color, 2)
 
     return frame
 

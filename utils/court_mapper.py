@@ -9,7 +9,7 @@ class CourtMapper:
         self.court_polygon = None
         self.homography_matrix = None
         self.clicked_points = []
-        self.output_size = (400, 800)
+        self.output_size = (600, 1000) 
         self.save_path = "output/court_points.json"
 
     def load_if_exists(self):
@@ -54,9 +54,14 @@ class CourtMapper:
         self.save_points()
         return self.clicked_points
 
-    def build_homography(self):
+    def build_homography(self, padding=80):
         W, H = self.output_size
-        dst = np.array([[0, 0], [W-1, 0], [W-1, H-1], [0, H-1]], dtype=np.float32)
+        dst = np.array([
+            [padding,     padding    ],
+            [W-padding,   padding    ],
+            [W-padding,   H-padding  ],
+            [padding,     H-padding  ]
+        ], dtype=np.float32)
         src = np.array(self.clicked_points, dtype=np.float32)
         self.homography_matrix, _ = cv2.findHomography(src, dst)
 
@@ -84,4 +89,12 @@ class CourtMapper:
         frame = cv2.addWeighted(overlay, 0.05, frame, 0.95, 0)
         cv2.polylines(frame, [self.court_polygon], True, (0, 255, 0), 2)
         return frame
+    
+    def unwarp_point(self, point):
+        if self.homography_matrix is None:
+            return point
+        inv = np.linalg.inv(self.homography_matrix)
+        pt = np.array([[[float(point[0]), float(point[1])]]], dtype=np.float32)
+        result = cv2.perspectiveTransform(pt, inv)
+        return tuple(result[0][0].astype(int))
     
