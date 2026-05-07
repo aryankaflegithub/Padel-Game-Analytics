@@ -70,3 +70,26 @@ def draw_players_on_original(frame, players, mapper, warp_scale):
 
     return frame
 
+def draw_ball_on_original(frame, ball_point, ball_history, mapper, warp_scale):
+    sx, sy = warp_scale
+
+    mapped_history = []
+
+    for pt in ball_history:
+        x = int(pt[0] / sx)
+        y = int(pt[1] / sy)
+        mapped_history.append(mapper.unwarp_point((x, y)))
+
+    for i in range(1, len(mapped_history)):
+        cv2.line(frame, mapped_history[i - 1], mapped_history[i], (0, 0, 255), 2)
+
+    if ball_point is not None:
+        x = int(ball_point[0] / sx)
+        y = int(ball_point[1] / sy)
+        orig = mapper.unwarp_point((x, y))
+        cv2.circle(frame, orig, 8, (0, 0, 255), -1)
+        cv2.putText(frame, "ball", (orig[0] + 10, orig[1] - 10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+
+    return frame
+
