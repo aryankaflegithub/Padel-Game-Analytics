@@ -7,7 +7,7 @@ from core.tracknet import TrackNetV3
 
 TRACKNET_W   = 512
 TRACKNET_H   = 288
-CONF_THRESH  = 0.15
+CONF_THRESH = 0.35
 MAX_JUMP     = 150
 LOST_LIMIT   = 8
 
