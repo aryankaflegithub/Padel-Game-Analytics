@@ -1,0 +1,10 @@
+frame,timestamp,player_id,shot_type,confidence,position_x,position_y
+124,4.96,2,forehand,1.0,923,243
+153,6.12,4,forehand,1.0,445,246
+168,6.72,4,forehand,1.0,243,215
+189,7.56,1,forehand,1.0,602,697
+260,10.4,2,forehand,1.0,872,83
+293,11.72,4,forehand,1.0,452,145
+357,14.28,4,forehand,1.0,513,246
+389,15.56,2,forehand,1.0,803,232
+404,16.16,2,forehand,1.0,928,371

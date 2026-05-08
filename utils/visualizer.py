@@ -93,3 +93,41 @@ def draw_ball_on_original(frame, ball_point, ball_history, mapper, warp_scale):
 
     return frame
 
+def draw_dashboard(frame, shot_counts, total_shots):
+
+    h, w = frame.shape[:2]
+    panel_w = 220
+
+    # dark overlay
+    overlay = frame.copy()
+    cv2.rectangle(overlay, (w - panel_w, 0), (w, h), (20, 20, 20), -1)
+    cv2.addWeighted(overlay, 0.6, frame, 0.4, 0, frame)
+
+    x = w - panel_w + 15
+    y = 40
+
+    cv2.putText(frame, "SHOT TRACKER", (x, y),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+    y += 10
+    cv2.line(frame, (w - panel_w + 10, y), (w - 10, y), (100, 100, 100), 1)
+    y += 30
+
+    for pid in sorted(shot_counts.keys()):
+        count = shot_counts[pid]
+        label = f"Player {pid}"
+        cv2.putText(frame, label, (x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (180, 220, 255), 1)
+        y += 25
+        cv2.putText(frame, f"  Hits: {count}", (x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+        y += 10
+        cv2.line(frame, (w - panel_w + 10, y), (w - 10, y), (60, 60, 60), 1)
+        y += 20
+
+    y += 10
+    cv2.putText(frame, f"Total: {total_shots}", (x, y),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 200), 2)
+
+    return frame
+

@@ -1,0 +1,83 @@
+[
+  {
+    "frame": 124,
+    "timestamp": 4.96,
+    "player_id": 2,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 923,
+    "position_y": 243
+  },
+  {
+    "frame": 153,
+    "timestamp": 6.12,
+    "player_id": 4,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 445,
+    "position_y": 246
+  },
+  {
+    "frame": 168,
+    "timestamp": 6.72,
+    "player_id": 4,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 243,
+    "position_y": 215
+  },
+  {
+    "frame": 189,
+    "timestamp": 7.56,
+    "player_id": 1,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 602,
+    "position_y": 697
+  },
+  {
+    "frame": 260,
+    "timestamp": 10.4,
+    "player_id": 2,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 872,
+    "position_y": 83
+  },
+  {
+    "frame": 293,
+    "timestamp": 11.72,
+    "player_id": 4,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 452,
+    "position_y": 145
+  },
+  {
+    "frame": 357,
+    "timestamp": 14.28,
+    "player_id": 4,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 513,
+    "position_y": 246
+  },
+  {
+    "frame": 389,
+    "timestamp": 15.56,
+    "player_id": 2,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 803,
+    "position_y": 232
+  },
+  {
+    "frame": 404,
+    "timestamp": 16.16,
+    "player_id": 2,
+    "shot_type": "forehand",
+    "confidence": 1.0,
+    "position_x": 928,
+    "position_y": 371
+  }
+]
