@@ -7,18 +7,20 @@ from core.tracknet import TrackNetV3
 
 TRACKNET_W   = 512
 TRACKNET_H   = 288
-CONF_THRESH = 0.35
+CONF_THRESH  = 0.35
 MAX_JUMP     = 150
 LOST_LIMIT   = 8
 
 
 class BallTracker:
     def __init__(self, weights_path=None, max_history=30, device=0):
-        self.max_history  = max_history
-        self.history      = []
-        self.lost_count   = 0
-        self.frame_buffer = []
-        self.gray_buffer  = []
+        self.max_history           = max_history
+        self.history               = []
+        self.source_history        = []
+        self.lost_count            = 0
+        self.frame_buffer          = []
+        self.gray_buffer           = []
+        self.last_detection_source = None
 
         self.device = torch.device(f"cuda:{device}" if torch.cuda.is_available() else "cpu")
         self.model  = None
@@ -28,7 +30,7 @@ class BallTracker:
 
     def _load(self, path):
         self.model = TrackNetV3(in_frames=3).to(self.device)
-        ck = torch.load(path, map_location=self.device)
+        ck = torch.load(path, map_location=self.device, weights_only=False)
         self.model.load_state_dict(ck["model_state_dict"])
         self.model.eval()
         print(f"TrackNetV3 loaded | epoch {ck.get('epoch', '?')} | acc {ck.get('test_acc', '?')}")
@@ -55,12 +57,11 @@ class BallTracker:
         x = torch.tensor(x).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
-            out = self.model(x)  # (1, 3, H, W)
+            out = self.model(x)
 
-        # use the last channel — corresponds to the most recent frame
         heatmap = out[0, 2].cpu().numpy()
+        conf    = float(heatmap.max())
 
-        conf = float(heatmap.max())
         if conf < CONF_THRESH:
             return None, conf
 
@@ -83,7 +84,7 @@ class BallTracker:
         diff = cv2.absdiff(self.gray_buffer[0], self.gray_buffer[-1])
         _, motion = cv2.threshold(diff, 6, 255, cv2.THRESH_BINARY)
 
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        hsv    = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         yellow = cv2.inRange(hsv, (15, 20, 60),  (50, 255, 255))
         white  = cv2.inRange(hsv, (0,  0,  140), (180, 50, 255))
         mask   = cv2.bitwise_and(motion, cv2.bitwise_or(yellow, white))
@@ -136,30 +137,44 @@ class BallTracker:
             self.frame_buffer.pop(0)
 
         point = None
+        self.last_detection_source = None
 
         if self.model is not None:
             point, conf = self._tracknet_detect(h, w)
             if debug:
                 print(f"tracknet conf: {conf:.3f} -> {point}")
-            if point is None:
+            if point is not None:
+                self.last_detection_source = "tracknet"
+            else:
                 point = self._fallback_detect(frame, ignore_boxes)
-                if debug and point:
-                    print(f"fallback -> {point}")
+                if point is not None:
+                    self.last_detection_source = "fallback"
+                    if debug:
+                        print(f"fallback -> {point}")
         else:
             point = self._fallback_detect(frame, ignore_boxes)
+            if point is not None:
+                self.last_detection_source = "fallback"
 
         if point is None:
             self.lost_count += 1
             if self.lost_count >= LOST_LIMIT:
-                self.history = self.history[-1:] if self.history else []
+                self.history        = self.history[-1:]        if self.history        else []
+                self.source_history = self.source_history[-1:] if self.source_history else []
             return None
 
         self.lost_count = 0
         self.history.append(point)
+        self.source_history.append(self.last_detection_source)
         if len(self.history) > self.max_history:
             self.history.pop(0)
+            self.source_history.pop(0)
         return point
 
     def get_history(self):
         return self.history
+
+    def get_source_history(self):
+        return self.source_history
+    
     
