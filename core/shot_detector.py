@@ -7,6 +7,7 @@ BALL_PROXIMITY     = 250
 MIN_BALL_HISTORY   = 4
 COOLDOWN           = 20
 MIN_TRAVEL_DIST    = 80
+MIN_SPEED_CHANGE   = 15
 
 class ShotDetector:
     def __init__(self):
@@ -15,24 +16,31 @@ class ShotDetector:
         self._last_hitter_id  = None
         self._wrist_history   = {}
 
-    def _ball_direction_changed(self, ball_history, source_history):
+    def _find_direction_change_offset(self, ball_history, source_history):
         if len(ball_history) < MIN_BALL_HISTORY:
-            return False
+            return -1
 
         if len(source_history) < 4 or not all(s == "tracknet" for s in source_history[-4:]):
-            return False
+            return -1
 
         start = np.array(ball_history[0],  dtype=float)
         end   = np.array(ball_history[-1], dtype=float)
         if np.linalg.norm(end - start) < MIN_TRAVEL_DIST:
-            return False
+            return -1
 
-        mid      = len(ball_history) // 2
-        v_before = np.array(ball_history[mid],   dtype=float) - np.array(ball_history[mid-1], dtype=float)
-        v_after  = np.array(ball_history[-1],    dtype=float) - np.array(ball_history[-2],    dtype=float)
-        if np.linalg.norm(v_before) < 2 or np.linalg.norm(v_after) < 2:
-            return False
-        return np.dot(v_before, v_after) < 0
+        for mid in range(2, len(ball_history) - 2):
+            v_before = np.array(ball_history[mid],   dtype=float) - np.array(ball_history[mid-1], dtype=float)
+            v_after  = np.array(ball_history[mid+1], dtype=float) - np.array(ball_history[mid],   dtype=float)
+
+            if np.linalg.norm(v_before) < 2 or np.linalg.norm(v_after) < 2:
+                continue
+            if np.dot(v_before, v_after) < 0 and np.linalg.norm(v_after - v_before) >= MIN_SPEED_CHANGE:
+                return mid
+
+        return -1
+
+    def _ball_direction_changed(self, ball_history, source_history):
+        return self._find_direction_change_offset(ball_history, source_history) >= 0
 
     def _update_wrists(self, players):
         for p in players:
@@ -104,25 +112,27 @@ class ShotDetector:
 
         if not ball_history or ball_source is None:
             return None
-
         if ball_source != "tracknet":
             return None
 
-        if not self._ball_direction_changed(ball_history, source_history or []):
+        offset = self._find_direction_change_offset(ball_history, source_history or [])
+        if offset < 0:
             return None
 
-        ball_pos = ball_history[-1]
+        ball_pos = ball_history[offset]
         hitter   = self._find_hitter(players, ball_pos)
 
         if hitter is None:
             return None
-
         if hitter["id"] == self._last_hitter_id:
             return None
 
+        frames_back  = len(ball_history) - 1 - offset
+        actual_frame = max(0, frame_idx - frames_back)
+
         shot = {
-            "frame":     frame_idx,
-            "timestamp": round(frame_idx / 25.0, 3),
+            "frame":     actual_frame,
+            "timestamp": round(actual_frame / 25.0, 3),
             "player_id": hitter["id"],
             "position":  ball_pos,
         }
@@ -133,6 +143,6 @@ class ShotDetector:
         return shot
 
     def get_shots(self):
-        return self.shots    
+        return self.shots  
     
     
