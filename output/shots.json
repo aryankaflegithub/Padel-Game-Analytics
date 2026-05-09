@@ -1,83 +1,56 @@
 [
   {
-    "frame": 124,
-    "timestamp": 4.96,
+    "frame": 120,
+    "timestamp": 4.8,
     "player_id": 2,
-    "shot_type": "forehand",
+    "shot_type": "backhand",
     "confidence": 1.0,
-    "position_x": 923,
-    "position_y": 243
+    "position_x": 896,
+    "position_y": 110
   },
   {
-    "frame": 153,
-    "timestamp": 6.12,
+    "frame": 171,
+    "timestamp": 6.84,
     "player_id": 4,
-    "shot_type": "forehand",
-    "confidence": 1.0,
-    "position_x": 445,
-    "position_y": 246
+    "shot_type": "backhand",
+    "confidence": 0.999,
+    "position_x": 208,
+    "position_y": 163
   },
   {
-    "frame": 168,
-    "timestamp": 6.72,
-    "player_id": 4,
-    "shot_type": "forehand",
-    "confidence": 1.0,
-    "position_x": 243,
-    "position_y": 215
-  },
-  {
-    "frame": 189,
-    "timestamp": 7.56,
+    "frame": 200,
+    "timestamp": 8.0,
     "player_id": 1,
     "shot_type": "forehand",
     "confidence": 1.0,
-    "position_x": 602,
-    "position_y": 697
-  },
-  {
-    "frame": 260,
-    "timestamp": 10.4,
-    "player_id": 2,
-    "shot_type": "forehand",
-    "confidence": 1.0,
-    "position_x": 872,
-    "position_y": 83
-  },
-  {
-    "frame": 293,
-    "timestamp": 11.72,
-    "player_id": 4,
-    "shot_type": "forehand",
-    "confidence": 1.0,
-    "position_x": 452,
+    "position_x": 682,
     "position_y": 145
   },
   {
-    "frame": 357,
-    "timestamp": 14.28,
+    "frame": 228,
+    "timestamp": 9.12,
+    "player_id": 2,
+    "shot_type": "backhand",
+    "confidence": 1.0,
+    "position_x": 701,
+    "position_y": 6
+  },
+  {
+    "frame": 306,
+    "timestamp": 12.24,
     "player_id": 4,
-    "shot_type": "forehand",
+    "shot_type": "backhand",
     "confidence": 1.0,
-    "position_x": 513,
-    "position_y": 246
+    "position_x": 675,
+    "position_y": 243
   },
   {
-    "frame": 389,
-    "timestamp": 15.56,
+    "frame": 405,
+    "timestamp": 16.2,
     "player_id": 2,
-    "shot_type": "forehand",
+    "shot_type": "backhand",
     "confidence": 1.0,
-    "position_x": 803,
-    "position_y": 232
-  },
-  {
-    "frame": 404,
-    "timestamp": 16.16,
-    "player_id": 2,
-    "shot_type": "forehand",
-    "confidence": 1.0,
-    "position_x": 928,
-    "position_y": 371
+    "position_x": 935,
+    "position_y": 416
   }
 ]

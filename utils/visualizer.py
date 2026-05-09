@@ -93,8 +93,7 @@ def draw_ball_on_original(frame, ball_point, ball_history, mapper, warp_scale):
 
     return frame
 
-def draw_dashboard(frame, shot_counts, total_shots):
-
+def draw_dashboard(frame, shot_counts, all_player_ids, total_shots):
     h, w = frame.shape[:2]
     panel_w = 220
 
@@ -113,10 +112,9 @@ def draw_dashboard(frame, shot_counts, total_shots):
     cv2.line(frame, (w - panel_w + 10, y), (w - 10, y), (100, 100, 100), 1)
     y += 30
 
-    for pid in sorted(shot_counts.keys()):
-        count = shot_counts[pid]
-        label = f"Player {pid}"
-        cv2.putText(frame, label, (x, y),
+    for pid in sorted(all_player_ids):
+        count = shot_counts.get(pid, 0)
+        cv2.putText(frame, f"Player {pid}", (x, y),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.55, (180, 220, 255), 1)
         y += 25
         cv2.putText(frame, f"  Hits: {count}", (x, y),
