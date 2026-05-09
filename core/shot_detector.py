@@ -6,7 +6,7 @@ WRIST_SPEED_THRESH = 15
 BALL_PROXIMITY     = 250
 MIN_BALL_HISTORY   = 4
 COOLDOWN           = 20
-
+MIN_TRAVEL_DIST    = 80
 
 class ShotDetector:
     def __init__(self):
@@ -14,6 +14,25 @@ class ShotDetector:
         self._last_shot_frame = -COOLDOWN
         self._last_hitter_id  = None
         self._wrist_history   = {}
+
+    def _ball_direction_changed(self, ball_history, source_history):
+        if len(ball_history) < MIN_BALL_HISTORY:
+            return False
+
+        if len(source_history) < 4 or not all(s == "tracknet" for s in source_history[-4:]):
+            return False
+
+        start = np.array(ball_history[0],  dtype=float)
+        end   = np.array(ball_history[-1], dtype=float)
+        if np.linalg.norm(end - start) < MIN_TRAVEL_DIST:
+            return False
+
+        mid      = len(ball_history) // 2
+        v_before = np.array(ball_history[mid],   dtype=float) - np.array(ball_history[mid-1], dtype=float)
+        v_after  = np.array(ball_history[-1],    dtype=float) - np.array(ball_history[-2],    dtype=float)
+        if np.linalg.norm(v_before) < 2 or np.linalg.norm(v_after) < 2:
+            return False
+        return np.dot(v_before, v_after) < 0
 
     def _update_wrists(self, players):
         for p in players:
@@ -39,15 +58,6 @@ class ShotDetector:
             speeds.append(max(sr, sl))
         return max(speeds)
 
-    def _ball_direction_changed(self, ball_history):
-        if len(ball_history) < MIN_BALL_HISTORY:
-            return False
-        mid      = len(ball_history) // 2
-        v_before = np.array(ball_history[mid],   dtype=float) - np.array(ball_history[mid-1], dtype=float)
-        v_after  = np.array(ball_history[-1],    dtype=float) - np.array(ball_history[-2],    dtype=float)
-        if np.linalg.norm(v_before) < 2 or np.linalg.norm(v_after) < 2:
-            return False
-        return np.dot(v_before, v_after) < 0
 
     def _find_hitter(self, players, ball_pos):
         best_score, best_player = -1, None
@@ -84,7 +94,7 @@ class ShotDetector:
 
         return best_player
 
-    def update(self, frame_idx, ball_history, players, ball_source=None):
+    def update(self, frame_idx, ball_history, players, ball_source=None, source_history=None):
         if not players:
             return None
         if frame_idx - self._last_shot_frame < COOLDOWN:
@@ -98,7 +108,7 @@ class ShotDetector:
         if ball_source != "tracknet":
             return None
 
-        if not self._ball_direction_changed(ball_history):
+        if not self._ball_direction_changed(ball_history, source_history or []):
             return None
 
         ball_pos = ball_history[-1]
