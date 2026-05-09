@@ -1,7 +1,6 @@
-AI/ML Internship Assignment
+### AI/ML Internship Assignment
 
-Project Title
-Padel Game Analytics — Shot Classification System
+## Padel Game Analytics — Shot Classification System
 
 So we are building a computer vision pipeline that takes a padel match video as input and gives output as a structured file (JSON/CSV) telling us exactly when each shot happened, who hit it and what type it was.
 
@@ -25,3 +24,106 @@ So the processing we will be following will be :
 7. Use STGCN for shot classification.
 8. Create a JSON and CSV file as output.
 
+
+## Set up explanation and run
+
+### 1. Requirements
+
+- Python 3.10
+- NVIDIA GPU with CUDA support
+- Install dependencies:
+
+```bash
+pip install ultralytics opencv-python torch torchvision numpy pandas mediapipe scipy matplotlib
+```
+
+### 2. Setup
+
+Put your match video at:
+
+```
+data/input_sample_video.mp4
+```
+
+The system needs to know where the court boundaries are in your video. Run:
+
+```bash
+python utils/court_mapper.py
+```
+
+A window will open showing your video frame. Click the four corners of the court in this order:
+
+1. Top-left
+2. Top-right
+3. Bottom-right
+4. Bottom-left
+
+Press `q` to save. This only needs to be done once per camera setup.
+
+To use court mapper you need to make another `.py` file to run it or just add the following code.
+
+```bash
+if __name__ == "__main__":
+    import sys
+
+    video_path = sys.argv[1] if len(sys.argv) > 1 else "data/input_sample_video.mp4"
+
+    cap = cv2.VideoCapture(video_path)
+    ret, frame = cap.read()
+    cap.release()
+
+    if not ret:
+        print(f"could not read video: {video_path}")
+        sys.exit(1)
+
+    os.makedirs("output", exist_ok=True)
+
+    mapper = CourtMapper()
+    mapper.define_court_manually(frame)
+    mapper.build_homography(padding=80)
+    print("homography built and points saved")
+``` 
+
+
+### 3. Running the Pipeline
+
+```bash
+python main.py
+```
+
+The script will:
+
+1. Load the video
+2. Detect and track all 4 players
+3. Track the ball using the fine-tuned TrackNetV3 model
+4. Detect shot events automatically
+5. Classify each shot as forehand, backhand or smash
+6. Save the annotated video and structured output
+
+Progress prints to the console every 25 frames.
+
+
+## Output
+
+`output/ball_test.mp4` - the original video with overlaid:
+- Player skeletons and IDs
+- Ball position and trail
+- Shot markers with player and shot type
+- Live shot count dashboard
+
+`shots.json` - json file with all details.
+
+`shots.csv` - csv file with all details.
+
+details are : `frame,timestamp,player_id,shot_type,confidence,position_x,position_y`
+
+
+## Configuration
+
+To change which video is processed open `main.py` and edit the top section.
+
+```python
+VIDEO_PATH   = "data/input_sample_video.mp4"   # path to your video
+OUT_PATH     = "output/ball_test.mp4"           # where to save output
+TEST_SECONDS = 20                               # how many seconds to process
+```
